@@ -1,554 +1,117 @@
 <!DOCTYPE html>
-<html class="scroll-smooth" lang="en">
+<html lang="en">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>InCSEption | Dive into Layers of Innovation</title>
-    <!-- Fonts -->
+    <title>InCSEption 2.0 | Hackathon Timer</title>
+    <meta name="description" content="8-Hour InCSEption 2.0 Hackathon Live Countdown Timer"/>
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'deep-navy': '#020617',
-                        'neon-blue': '#0ea5e9',
-                        'cyan-glow': '#38bdf8',
-                    },
-                    fontFamily: {
-                        orbitron: ['Orbitron', 'sans-serif'],
-                        inter: ['Inter', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
-    <!-- Custom Extracted Styles -->
-    <style>
-        body {
-            background-color: #020617;
-            color: #e2e8f0;
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-        }
-
-        /* 3D Animated Grid Environment */
-        .grid-wrapper {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            perspective: 600px;
-            z-index: -2;
-            overflow: hidden;
-            background-color: #020617;
-        }
-
-        .grid-plane {
-            position: absolute;
-            width: 200vw;
-            height: 150vh;
-            left: -50vw;
-            background-image: 
-                linear-gradient(to right, rgba(14, 165, 233, 0.25) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(14, 165, 233, 0.25) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: gridMove 2s linear infinite;
-        }
-
-        .grid-bottom {
-            top: 50vh;
-            transform-origin: top center;
-            transform: rotateX(75deg);
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 40%);
-            mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 40%);
-        }
-
-        .grid-top {
-            bottom: 50vh;
-            transform-origin: bottom center;
-            transform: rotateX(-75deg);
-            -webkit-mask-image: linear-gradient(to top, transparent 0%, rgba(0,0,0,1) 40%);
-            mask-image: linear-gradient(to top, transparent 0%, rgba(0,0,0,1) 40%);
-        }
-
-        .scanline {
-            position: absolute;
-            top: 0; left: 0; width: 100vw; height: 15vh;
-            background: linear-gradient(to bottom, transparent, rgba(56, 189, 248, 0.15), transparent);
-            animation: scan 6s linear infinite;
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        @keyframes gridMove {
-            0% { background-position-y: 0px; }
-            100% { background-position-y: 50px; }
-        }
-
-        @keyframes scan {
-            0% { transform: translateY(-20vh); }
-            100% { transform: translateY(120vh); }
-        }
-
-        .glass {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-        }
-
-        .neon-border {
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4), inset 0 0 10px rgba(56, 189, 248, 0.1);
-            border-color: rgba(56, 189, 248, 0.6);
-        }
-
-        .neon-text-glow {
-            text-shadow: 0 0 15px rgba(14, 165, 233, 0.9), 0 0 30px rgba(14, 165, 233, 0.6), 0 0 45px rgba(14, 165, 233, 0.4);
-        }
-
-        .neon-btn-glow {
-            box-shadow: 0 0 20px rgba(14, 165, 233, 0.5);
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-            transition: all 0.3s ease;
-        }
-        
-        .neon-btn-glow:hover {
-            box-shadow: 0 0 40px rgba(14, 165, 233, 0.8), 0 0 15px rgba(56, 189, 248, 0.4);
-            transform: scale(1.05);
-        }
-
-        .tracks-soon-card {
-            position: relative;
-            overflow: hidden;
-            animation: tracksFloat 3.2s ease-in-out infinite;
-        }
-
-        .tracks-soon-card::before {
-            content: "";
-            position: absolute;
-            inset: -120% 40% -120% -40%;
-            background: linear-gradient(120deg, transparent 30%, rgba(56, 189, 248, 0.22) 50%, transparent 70%);
-            animation: tracksSweep 2.8s linear infinite;
-            pointer-events: none;
-        }
-
-        .tracks-soon-text {
-            animation: tracksPulse 1.8s ease-in-out infinite;
-        }
-
-        .tracks-loader {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-top: 1.25rem;
-        }
-
-        .tracks-loader-dot {
-            width: 0.6rem;
-            height: 0.6rem;
-            border-radius: 9999px;
-            background: rgba(56, 189, 248, 0.9);
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
-            animation: tracksBounce 0.9s ease-in-out infinite;
-        }
-
-        .tracks-loader-dot:nth-child(2) {
-            animation-delay: 0.15s;
-        }
-
-        .tracks-loader-dot:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        @keyframes tracksFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-6px); }
-        }
-
-        @keyframes tracksSweep {
-            0% { transform: translateX(-35%); }
-            100% { transform: translateX(85%); }
-        }
-
-        @keyframes tracksPulse {
-            0%, 100% { opacity: 0.82; text-shadow: 0 0 8px rgba(56, 189, 248, 0.45); }
-            50% { opacity: 1; text-shadow: 0 0 18px rgba(56, 189, 248, 0.9); }
-        }
-
-        @keyframes tracksBounce {
-            0%, 100% { transform: translateY(0); opacity: 0.8; }
-            50% { transform: translateY(-8px); opacity: 1; }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css"/>
 </head>
-<body class="min-h-screen">
+<body>
 
-    <!-- 3D Animated Grid Environment -->
+    <!-- 3D Animated Grid Background -->
     <div class="grid-wrapper">
         <div class="grid-plane grid-top"></div>
         <div class="grid-plane grid-bottom"></div>
         <div class="scanline"></div>
     </div>
 
-    <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-50 glass border-b border-cyan-glow/20 px-6 py-4">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="font-orbitron font-bold text-xl md:text-2xl tracking-wider text-neon-blue neon-text-glow">
-                &lt;In<span class="text-white">CSE</span>ption 2.0&gt;
-            </div>
-            <div class="hidden md:flex space-x-8 text-sm uppercase tracking-widest font-orbitron">
-                <a class="hover:text-cyan-glow transition-colors" href="#about">About</a>
-                <a class="hover:text-cyan-glow transition-colors" href="#prizes">Prizes</a>
-                <a class="hover:text-cyan-glow transition-colors" href="#tracks">Tracks</a>
-                <a class="hover:text-cyan-glow transition-colors" href="#timeline">Timeline</a>
-            </div>
-            <a class="border border-neon-blue/60 text-neon-blue px-6 py-2 rounded-sm font-orbitron text-sm hover:bg-neon-blue hover:text-white transition-all neon-btn-glow" href="https://docs.google.com/forms/d/e/1FAIpQLSfLcrN64D3Jv46L_SJKhD9aVvpLCxnAgZ2v-tcNxea-xwx_8Q/viewform?usp=header">REGISTER</a>
+    <!-- Particle overlay -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Main Content -->
+    <main class="main-container">
+
+        <!-- Logo -->
+        <div class="logo-header">
+            &lt;In<span class="cyan">CSE</span>ption 2.0&gt;
         </div>
-    </nav>
 
-    <!-- Hero Section -->
-    <section class="relative min-h-screen flex flex-col items-center justify-center pt-20 px-4 text-center overflow-hidden">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.2)_0%,transparent_60%)] pointer-events-none"></div>
-        <div class="z-10 animate-fade-in flex flex-col items-center">
-            <h1 class="font-orbitron text-6xl md:text-8xl font-black mb-6 tracking-tighter">
-                &lt;In<span class="text-neon-blue neon-text-glow">CSE</span>ption 2.0&gt;
-            </h1>
-            <p class="font-orbitron text-cyan-glow text-lg md:text-2xl mb-12 tracking-[0.2em] uppercase neon-text-glow">
-                Dive into Layers of Innovation
-            </p>
-            <a class="inline-block bg-neon-blue text-white font-orbitron font-bold py-4 px-10 rounded-sm neon-btn-glow transition-all transform uppercase tracking-widest text-lg" href="https://docs.google.com/forms/d/e/1FAIpQLSfLcrN64D3Jv46L_SJKhD9aVvpLCxnAgZ2v-tcNxea-xwx_8Q/viewform?usp=header">
-                Register Now
-            </a>
-        </div>
-    </section>
-
-    <!-- Countdown Section -->
-    <section class="py-16 px-6 max-w-4xl mx-auto text-center relative z-10" id="countdown">
-        <div class="glass p-8 md:p-12 rounded-xl neon-border inline-block w-full">
-            <h2 class="font-orbitron text-2xl md:text-3xl mb-8 text-cyan-glow uppercase tracking-widest neon-text-glow">Time Left to Make It Happen</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                <div class="glass rounded-lg p-4">
-                    <div class="font-orbitron text-3xl md:text-4xl text-white" id="days">00</div>
-                    <div class="font-inter text-xs md:text-sm uppercase tracking-widest text-gray-400 mt-2">Days</div>
+        <!-- START SCREEN -->
+        <div id="startScreen" class="screen active">
+            <div class="start-card glass-card">
+                <div class="hackathon-badge">8-HOUR HACKATHON</div>
+                <h1 class="start-title">
+                    Ready to<br/>
+                    <span class="cyan glow-text">Dive In?</span>
+                </h1>
+                <p class="start-subtitle">Dive into Layers of Innovation</p>
+                <div class="timer-preview">
+                    <span>08</span><span class="colon">:</span><span>00</span><span class="colon">:</span><span>00</span>
                 </div>
-                <div class="glass rounded-lg p-4">
-                    <div class="font-orbitron text-3xl md:text-4xl text-white" id="hours">00</div>
-                    <div class="font-inter text-xs md:text-sm uppercase tracking-widest text-gray-400 mt-2">Hours</div>
-                </div>
-                <div class="glass rounded-lg p-4">
-                    <div class="font-orbitron text-3xl md:text-4xl text-white" id="minutes">00</div>
-                    <div class="font-inter text-xs md:text-sm uppercase tracking-widest text-gray-400 mt-2">Minutes</div>
-                </div>
-                <div class="glass rounded-lg p-4">
-                    <div class="font-orbitron text-3xl md:text-4xl text-white" id="seconds">00</div>
-                    <div class="font-inter text-xs md:text-sm uppercase tracking-widest text-gray-400 mt-2">Seconds</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- About Section -->
-    <section class="py-24 px-6 max-w-4xl mx-auto text-center relative z-10" id="about">
-        <h2 class="font-orbitron text-3xl md:text-4xl mb-12 text-cyan-glow uppercase tracking-widest neon-text-glow">The Glitch in the System</h2>
-        <div class="glass p-8 md:p-12 rounded-xl neon-border inline-block">
-            <p class="text-lg md:text-xl leading-relaxed text-gray-300 font-inter">
-                InCSEption is a high-octane 8-hour hackathon designed to push the boundaries of technical prowess and creative problem-solving. It's not just a competition; it's a multi-layered journey into the core of Computer Science and Engineering. Whether you're a builder, a breaker, or a visionary, your layer of reality starts here.
-            </p>
-            <br />
-            <a href="#" class="inline-block border border-neon-blue/60 text-neon-blue font-orbitron font-bold py-3 px-8 rounded-sm neon-btn-glow transition-all uppercase tracking-widest hover:bg-neon-blue hover:text-white">
-                Download Brochure
-            </a>
-        </div>
-    </section>
-
-    <!-- Prize Pool Section -->
-    <section class="py-16 md:py-24 px-4 md:px-6 max-w-6xl mx-auto text-center relative z-10" id="prizes">
-        <h2 class="font-orbitron text-2xl sm:text-3xl md:text-4xl mb-10 md:mb-16 text-cyan-glow uppercase tracking-widest neon-text-glow">Prize Pool</h2>
-        
-        <!-- Total Prize Pool Block -->
-        <div id="prizePoolToggle" class="relative glass p-7 sm:p-10 md:p-12 rounded-xl neon-border mx-auto max-w-2xl cursor-pointer hover:-translate-y-2 transition-all duration-300 mb-10 md:mb-12">
-            <div class="absolute top-4 right-4 w-7 h-7 rounded-full border border-cyan-glow/40 text-cyan-glow/70 flex items-center justify-center text-base leading-none bg-deep-navy/40">+</div>
-            <div class="text-5xl md:text-6xl mb-5 md:mb-6 text-center flex justify-center w-full drop-shadow-[0_0_15px_rgba(56,189,248,0.5)]">💰</div>
-            <h3 class="font-orbitron text-xl sm:text-2xl text-cyan-glow neon-text-glow mb-3 md:mb-4">Total Prize Pool</h3>
-            <div class="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-3 md:mb-4">₹ 1,00,000</div>
-            <p class="text-gray-400 text-xs sm:text-sm">Click to view year-wise split for 1st, 2nd, and 3rd place</p>
-        </div>
-    </section>
-
-    <!-- Prize Breakdown Modal -->
-    <div id="prizeModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="glass rounded-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto neon-border">
-            <div class="p-5 sm:p-6 md:p-8">
-                <div class="flex justify-between items-center mb-6 md:mb-8">
-                    <h2 class="font-orbitron text-xl sm:text-2xl md:text-3xl text-cyan-glow neon-text-glow uppercase tracking-widest">Prize Breakdown</h2>
-                    <button id="closeModal" class="text-gray-400 hover:text-cyan-glow text-2xl leading-none">&times;</button>
-                </div>
-
-                <div class="space-y-10 md:space-y-12 text-center">
-                    <div>
-                        <h3 class="font-orbitron text-xl md:text-2xl text-cyan-glow mb-6 md:mb-8 pb-3 md:pb-4 border-b border-cyan-glow/30 text-center md:text-left">1st Year</h3>
-                        <div class="flex flex-col md:flex-row justify-center items-stretch md:items-end gap-4 md:gap-6">
-                            <div class="glass p-6 md:p-7 rounded-xl w-full md:w-auto md:flex-1 hover:-translate-y-2 transition-transform duration-300">
-                                <div class="text-5xl mb-4 text-center">🥈</div>
-                                <h4 class="font-orbitron text-lg text-gray-300 mb-2">2nd Place</h4>
-                                <div class="text-3xl font-bold text-white">₹ 7,500</div>
-                            </div>
-                            <div class="glass p-8 md:p-10 rounded-xl neon-border w-full md:w-auto md:flex-[1.2] transform md:scale-105 bg-deep-navy/80 hover:-translate-y-2 transition-transform duration-300 order-first md:order-none">
-                                <div class="text-5xl md:text-6xl mb-4 md:mb-5 text-center drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]">🥇</div>
-                                <h4 class="font-orbitron text-lg md:text-xl text-cyan-glow neon-text-glow mb-2 md:mb-3">1st Place</h4>
-                                <div class="text-3xl md:text-4xl font-bold text-white">₹ 10,000</div>
-                            </div>
-                            <div class="glass p-6 md:p-7 rounded-xl w-full md:w-auto md:flex-1 hover:-translate-y-2 transition-transform duration-300">
-                                <div class="text-5xl mb-4 text-center">🥉</div>
-                                <h4 class="font-orbitron text-lg text-gray-300 mb-2">3rd Place</h4>
-                                <div class="text-3xl font-bold text-white">₹ 5,000</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="font-orbitron text-xl md:text-2xl text-cyan-glow mb-6 md:mb-8 pb-3 md:pb-4 border-b border-cyan-glow/30 text-center md:text-left">2nd Year</h3>
-                        <div class="flex flex-col md:flex-row justify-center items-stretch md:items-end gap-4 md:gap-6">
-                            <div class="glass p-6 md:p-7 rounded-xl w-full md:w-auto md:flex-1 hover:-translate-y-2 transition-transform duration-300">
-                                <div class="text-5xl mb-4 text-center">🥈</div>
-                                <h4 class="font-orbitron text-lg text-gray-300 mb-2">2nd Place</h4>
-                                <div class="text-3xl font-bold text-white">₹ 7,500</div>
-                            </div>
-                            <div class="glass p-8 md:p-10 rounded-xl neon-border w-full md:w-auto md:flex-[1.2] transform md:scale-105 bg-deep-navy/80 hover:-translate-y-2 transition-transform duration-300 order-first md:order-none">
-                                <div class="text-5xl md:text-6xl mb-4 md:mb-5 text-center drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]">🥇</div>
-                                <h4 class="font-orbitron text-lg md:text-xl text-cyan-glow neon-text-glow mb-2 md:mb-3">1st Place</h4>
-                                <div class="text-3xl md:text-4xl font-bold text-white">₹ 10,000</div>
-                            </div>
-                            <div class="glass p-6 md:p-7 rounded-xl w-full md:w-auto md:flex-1 hover:-translate-y-2 transition-transform duration-300">
-                                <div class="text-5xl mb-4 text-center">🥉</div>
-                                <h4 class="font-orbitron text-lg text-gray-300 mb-2">3rd Place</h4>
-                                <div class="text-3xl font-bold text-white">₹ 5,000</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="font-orbitron text-xl md:text-2xl text-cyan-glow mb-6 md:mb-8 pb-3 md:pb-4 border-b border-cyan-glow/30 text-center md:text-left">3rd Year</h3>
-                        <div class="flex flex-col md:flex-row justify-center items-stretch md:items-end gap-4 md:gap-6">
-                            <div class="glass p-6 md:p-7 rounded-xl w-full md:w-auto md:flex-1 hover:-translate-y-2 transition-transform duration-300">
-                                <div class="text-5xl mb-4 text-center">🥈</div>
-                                <h4 class="font-orbitron text-lg text-gray-300 mb-2">2nd Place</h4>
-                                <div class="text-3xl font-bold text-white">₹ 7,500</div>
-                            </div>
-                            <div class="glass p-8 md:p-10 rounded-xl neon-border w-full md:w-auto md:flex-[1.2] transform md:scale-105 bg-deep-navy/80 hover:-translate-y-2 transition-transform duration-300 order-first md:order-none">
-                                <div class="text-5xl md:text-6xl mb-4 md:mb-5 text-center drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]">🥇</div>
-                                <h4 class="font-orbitron text-lg md:text-xl text-cyan-glow neon-text-glow mb-2 md:mb-3">1st Place</h4>
-                                <div class="text-3xl md:text-4xl font-bold text-white">₹ 10,000</div>
-                            </div>
-                            <div class="glass p-6 md:p-7 rounded-xl w-full md:w-auto md:flex-1 hover:-translate-y-2 transition-transform duration-300">
-                                <div class="text-5xl mb-4 text-center">🥉</div>
-                                <h4 class="font-orbitron text-lg text-gray-300 mb-2">3rd Place</h4>
-                                <div class="text-3xl font-bold text-white">₹ 5,000</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="font-orbitron text-xl md:text-2xl text-cyan-glow mb-6 md:mb-8 pb-3 md:pb-4 border-b border-cyan-glow/30 text-center md:text-left">4th Year, MCA & MTech</h3>
-                        <div class="flex flex-col md:flex-row justify-center items-stretch md:items-end gap-4 md:gap-6">
-                            <div class="glass p-6 md:p-7 rounded-xl w-full md:w-auto md:flex-1 hover:-translate-y-2 transition-transform duration-300">
-                                <div class="text-5xl mb-4 text-center">🥈</div>
-                                <h4 class="font-orbitron text-lg text-gray-300 mb-2">2nd Place</h4>
-                                <div class="text-3xl font-bold text-white">₹ 7,500</div>
-                            </div>
-                            <div class="glass p-8 md:p-10 rounded-xl neon-border w-full md:w-auto md:flex-[1.2] transform md:scale-105 bg-deep-navy/80 hover:-translate-y-2 transition-transform duration-300 order-first md:order-none">
-                                <div class="text-5xl md:text-6xl mb-4 md:mb-5 text-center drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]">🥇</div>
-                                <h4 class="font-orbitron text-lg md:text-xl text-cyan-glow neon-text-glow mb-2 md:mb-3">1st Place</h4>
-                                <div class="text-3xl md:text-4xl font-bold text-white">₹ 10,000</div>
-                            </div>
-                            <div class="glass p-6 md:p-7 rounded-xl w-full md:w-auto md:flex-1 hover:-translate-y-2 transition-transform duration-300">
-                                <div class="text-5xl mb-4 text-center">🥉</div>
-                                <h4 class="font-orbitron text-lg text-gray-300 mb-2">3rd Place</h4>
-                                <div class="text-3xl font-bold text-white">₹ 5,000</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Innovation Tracks -->
-    <section class="py-24 px-6 max-w-6xl mx-auto relative z-10" id="tracks">
-        <h2 class="font-orbitron text-3xl md:text-4xl mb-16 text-cyan-glow uppercase tracking-widest neon-text-glow text-center">Innovation Tracks</h2>
-        
-        <div class="max-w-3xl mx-auto">
-            <div class="tracks-soon-card glass neon-border rounded-xl px-6 py-10 md:px-10 md:py-14 text-center">
-                <div class="text-cyan-glow text-sm md:text-base tracking-[0.35em] uppercase font-orbitron mb-4 opacity-90">Innovation Tracks</div>
-                <h3 class="tracks-soon-text font-orbitron text-2xl sm:text-3xl md:text-4xl text-white uppercase tracking-widest">Will Be Announced Soon</h3>
-                <div class="tracks-loader" aria-label="Loading">
-                    <span class="tracks-loader-dot"></span>
-                    <span class="tracks-loader-dot"></span>
-                    <span class="tracks-loader-dot"></span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Timeline -->
-    <section class="py-24 px-6 max-w-5xl mx-auto relative z-10" id="timeline">
-        <h2 class="font-orbitron text-3xl md:text-4xl mb-16 text-cyan-glow uppercase tracking-widest neon-text-glow text-center">Timeline</h2>
-        
-        <div class="relative max-w-5xl mx-auto">
-            <div class="absolute left-[14px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-cyan-glow/85 via-cyan-glow/45 to-cyan-glow/10 md:hidden"></div>
-            <div class="hidden md:block absolute left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 bg-gradient-to-b from-cyan-glow/85 via-cyan-glow/45 to-cyan-glow/10"></div>
-
-            <div class="space-y-10 md:space-y-14">
-                
-                <div class="relative pl-10 md:pl-0 md:grid md:grid-cols-2 md:gap-12 md:items-start">
-                    <div class="absolute left-[7px] top-8 w-4 h-4 rounded-full bg-cyan-glow shadow-[0_0_15px_#38bdf8] border-2 border-deep-navy md:left-1/2 md:-translate-x-1/2"></div>
-                    <div class="absolute left-[14px] top-10 w-6 h-[2px] bg-cyan-glow/75 md:hidden"></div>
-                    <div class="hidden md:block absolute top-10 left-1/2 w-12 h-[2px] bg-cyan-glow/75"></div>
-
-                    <div class="md:col-start-2">
-                        <div class="glass rounded-xl p-6 md:p-7 border border-cyan-glow/35 md:text-right">
-                            <div class="font-orbitron text-sm md:text-base text-cyan-glow uppercase tracking-[0.22em] mb-3">Registration</div>
-                            <h4 class="text-xl font-bold text-white mb-2">March 24, 2026</h4>
-                            <p class="text-sm text-gray-400">Registration Starts</p>
-                            <h4 class="text-xl font-bold text-white mb-2"> April 1, 2026</h4>
-                            <p class="text-sm text-gray-400">Registration Ends</p>
-                            
-                        </div>
-                    </div>
-                </div>
-
-                <div class="relative pl-10 md:pl-0 md:grid md:grid-cols-2 md:gap-12 md:items-start">
-                    <div class="absolute left-[7px] top-8 w-4 h-4 rounded-full bg-cyan-glow shadow-[0_0_15px_#38bdf8] border-2 border-deep-navy md:left-1/2 md:-translate-x-1/2"></div>
-                    <div class="absolute left-[14px] top-10 w-6 h-[2px] bg-cyan-glow/75 md:hidden"></div>
-                    <div class="hidden md:block absolute top-10 left-[calc(50%-3rem)] w-12 h-[2px] bg-cyan-glow/75"></div>
-
-                    <div class="md:col-start-1">
-                        <div class="glass rounded-xl p-6 md:p-7 border border-cyan-glow/35 md:text-right">
-                            <div class="font-orbitron text-sm md:text-base text-cyan-glow uppercase tracking-[0.22em] mb-3">Phase 02</div>
-                            <h4 class="text-xl font-bold text-white mb-2">8-Hour Hackathon</h4>
-                            <p class="text-sm text-gray-400">Date: April 6, 2026</p>
-                        </div>
-                    </div>
-                </div>
+                <button id="startBtn" class="start-btn" onclick="startTimer()">
+                    <span class="btn-icon">▶</span>
+                    START HACKATHON
+                </button>
+                <p class="start-note">Timer will begin counting down from 8:00:00</p>
             </div>
         </div>
 
-    </section>
+        <!-- TIMER SCREEN -->
+        <div id="timerScreen" class="screen">
+            <div class="timer-label cyan glow-text">HACKATHON IN PROGRESS</div>
 
-    <!-- Footer -->
-    <footer class="py-16 px-4 md:px-6 border-t border-cyan-glow/20 bg-deep-navy/80 relative z-10 glass rounded-none border-b-0 border-l-0 border-r-0">
-        <div class="max-w-6xl mx-auto">
-            <h2 class="font-orbitron text-2xl text-cyan-glow tracking-widest mb-2 neon-text-glow uppercase text-center md:text-left">The Architects</h2>
-            <div class="font-orbitron text-gray-300 text-center md:text-left mb-8 text-sm uppercase tracking-widest">
-                <span class="text-white">Prithvi</span> &amp; <span class="text-white">Ramith KR</span>
-            </div>
-            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-8 md:gap-10 mb-10">
-                <div class="w-full md:w-[60%]">
-                    <h3 class="font-orbitron text-lg text-cyan-glow uppercase tracking-widest mb-4 text-center md:text-left">Participant Helpline</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                        <div class="glass rounded-lg border border-cyan-glow/30 p-4 hover:border-cyan-glow transition-colors text-center">
-                            <div class="font-orbitron text-sm text-white uppercase tracking-wider">Sujal</div>
-                            <div class="text-gray-300 mt-1">+91 63639 24898</div>
-                        </div>
-                        <div class="glass rounded-lg border border-cyan-glow/30 p-4 hover:border-cyan-glow transition-colors text-center">
-                            <div class="font-orbitron text-sm text-white uppercase tracking-wider">Tejas</div>
-                            <div class="text-gray-300 mt-1">+91 70192 86337</div>
-                        </div>
+            <div class="timer-card glass-card">
+                <div class="progress-ring-wrapper">
+                    <svg class="progress-ring" viewBox="0 0 340 340">
+                        <circle class="ring-bg" cx="170" cy="170" r="155"/>
+                        <circle id="ringProgress" class="ring-fill" cx="170" cy="170" r="155"/>
+                    </svg>
+                    <div class="ring-inner">
+                        <div class="ring-label">TIME REMAINING</div>
+                        <div id="mainDisplay" class="main-display">08:00:00</div>
+                        <div class="ring-sublabel">InCSEption 2.0</div>
                     </div>
                 </div>
-                <div class="w-full md:w-auto">
-                    <h3 class="font-orbitron text-lg text-cyan-glow uppercase tracking-widest mb-4 text-center md:text-right">Connect</h3>
-                    <div class="flex justify-center md:justify-end flex-wrap gap-5 md:gap-8">
-                        <a href="#" class="text-gray-400 hover:text-cyan-glow transition-all hover:scale-110"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
-                        <a href="#" class="text-gray-400 hover:text-cyan-glow transition-all hover:scale-110"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
-                        <a href="#" class="text-gray-400 hover:text-cyan-glow transition-all hover:scale-110"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l16 16M4 20L20 4"></path></svg></a>
-                        <a href="#" class="text-gray-400 hover:text-cyan-glow transition-all hover:scale-110"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a>
-                        <a href="#" class="text-gray-400 hover:text-cyan-glow transition-all hover:scale-110"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/><path d="M20.5 4.5l-2-1H5.5l-2 1C2 6 2 13 2 13l2 5h16l2-5s0-7-1.5-8.5zm-5 11.5H8.5l-1-1v-2h9v2l-1 1z"/></svg></a>
+
+                <div class="time-blocks">
+                    <div class="time-block">
+                        <div id="hoursDisplay" class="block-value">08</div>
+                        <div class="block-label">HOURS</div>
+                        <div class="block-bar"><div id="hoursBar" class="block-bar-fill" style="width:100%"></div></div>
+                    </div>
+                    <div class="time-sep">:</div>
+                    <div class="time-block">
+                        <div id="minutesDisplay" class="block-value">00</div>
+                        <div class="block-label">MINUTES</div>
+                        <div class="block-bar"><div id="minutesBar" class="block-bar-fill" style="width:0%"></div></div>
+                    </div>
+                    <div class="time-sep">:</div>
+                    <div class="time-block">
+                        <div id="secondsDisplay" class="block-value">00</div>
+                        <div class="block-label">SECONDS</div>
+                        <div class="block-bar"><div id="secondsBar" class="block-bar-fill" style="width:0%"></div></div>
                     </div>
                 </div>
+
+                <div class="control-row">
+                    <button id="pauseBtn" class="ctrl-btn" onclick="togglePause()">⏸ PAUSE</button>
+                    <button class="ctrl-btn ctrl-btn-ghost" onclick="resetTimer()">↺ RESET</button>
+                </div>
             </div>
-            <p class="font-inter text-sm text-gray-500 tracking-wide text-center md:text-left">&copy; 2026 InCSEption 2.0 Hackathon. All rights reserved.</p>
+
+            <div id="elapsed-row" class="elapsed-row">
+                <span class="elapsed-label">Elapsed:</span>
+                <span id="elapsedDisplay" class="elapsed-val">00:00:00</span>
+            </div>
         </div>
-    </footer>
 
-    <script>
-        (function () {
-            const prizePoolToggle = document.getElementById('prizePoolToggle');
-            const prizeModal = document.getElementById('prizeModal');
-            const closeModal = document.getElementById('closeModal');
+        <!-- FINISHED SCREEN -->
+        <div id="finishedScreen" class="screen">
+            <div class="finish-card glass-card">
+                <div class="finish-icon">🏁</div>
+                <h2 class="finish-title cyan glow-text">TIME'S UP!</h2>
+                <p class="finish-sub">The 8-Hour Hackathon Has Ended</p>
+                <p class="finish-msg">&lt;In<span class="cyan">CSE</span>ption 2.0&gt; — Dive into Layers of Innovation</p>
+                <button class="start-btn" onclick="resetTimer()">↺ RESET TIMER</button>
+            </div>
+        </div>
 
-            if (!prizePoolToggle || !prizeModal || !closeModal) {
-                return;
-            }
+    </main>
 
-            prizePoolToggle.addEventListener('click', () => {
-                prizeModal.classList.remove('hidden');
-                document.body.classList.add('overflow-hidden');
-            });
-
-            function closePrizeModal() {
-                prizeModal.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
-            }
-
-            closeModal.addEventListener('click', closePrizeModal);
-
-            prizeModal.addEventListener('click', (event) => {
-                if (event.target === prizeModal) {
-                    closePrizeModal();
-                }
-            });
-
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape' && !prizeModal.classList.contains('hidden')) {
-                    closePrizeModal();
-                }
-            });
-        })();
-    </script>
-
-    <script>
-        (function () {
-            const dayEl = document.getElementById('days');
-            const hourEl = document.getElementById('hours');
-            const minuteEl = document.getElementById('minutes');
-            const secondEl = document.getElementById('seconds');
-
-            function getNextAprilSix() {
-                const now = new Date();
-                const currentYear = now.getFullYear();
-                let target = new Date(currentYear, 3, 6, 0, 0, 0, 0);
-                if (now > target) {
-                    target = new Date(currentYear + 1, 3, 6, 0, 0, 0, 0);
-                }
-                return target;
-            }
-
-            function updateCountdown() {
-                const now = new Date();
-                const target = getNextAprilSix();
-                const diff = target.getTime() - now.getTime();
-
-                const totalSeconds = Math.max(0, Math.floor(diff / 1000));
-                const days = Math.floor(totalSeconds / 86400);
-                const hours = Math.floor((totalSeconds % 86400) / 3600);
-                const minutes = Math.floor((totalSeconds % 3600) / 60);
-                const seconds = totalSeconds % 60;
-
-                dayEl.textContent = String(days).padStart(2, '0');
-                hourEl.textContent = String(hours).padStart(2, '0');
-                minuteEl.textContent = String(minutes).padStart(2, '0');
-                secondEl.textContent = String(seconds).padStart(2, '0');
-            }
-
-            updateCountdown();
-            setInterval(updateCountdown, 1000);
-        })();
-    </script>
-
+    <script src="script.js"></script>
 </body>
 </html>
