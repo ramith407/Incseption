@@ -1,237 +1,172 @@
-const canvas = document.getElementById('heroCanvas');
-const ctx = canvas.getContext('2d');
+/* ============================================================
+   InCSEption 2.0 — Hackathon Timer Logic
+   ============================================================ */
 
-let width, height;
-let fov = 300; 
+const TOTAL_SECONDS = 8 * 60 * 60; // 8 hours in seconds
+const RING_CIRCUMFERENCE = 2 * Math.PI * 155; // matches r="155" in SVG
 
-let mouseX = 0;
-let mouseY = 0;
-let targetMouseX = 0;
-let targetMouseY = 0;
+let secondsLeft = TOTAL_SECONDS;
+let timerInterval = null;
+let isPaused = false;
+let started = false;
 
-function resize() {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
-    fov = width * 0.8;
+// ── DOM refs ──
+const startScreen    = document.getElementById('startScreen');
+const timerScreen    = document.getElementById('timerScreen');
+const finishedScreen = document.getElementById('finishedScreen');
+
+const hoursDisplay   = document.getElementById('hoursDisplay');
+const minutesDisplay = document.getElementById('minutesDisplay');
+const secondsDisplay = document.getElementById('secondsDisplay');
+const mainDisplay    = document.getElementById('mainDisplay');
+const elapsedDisplay = document.getElementById('elapsedDisplay');
+
+const hoursBar   = document.getElementById('hoursBar');
+const minutesBar = document.getElementById('minutesBar');
+const secondsBar = document.getElementById('secondsBar');
+
+const ringProgress = document.getElementById('ringProgress');
+const pauseBtn     = document.getElementById('pauseBtn');
+
+// Set ring total circumference
+ringProgress.style.strokeDasharray  = RING_CIRCUMFERENCE;
+ringProgress.style.strokeDashoffset = 0;
+
+// ── screens helper ──
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
 }
 
-window.addEventListener('resize', resize);
-resize();
-
-window.addEventListener('mousemove', (e) => {
-    targetMouseX = (e.clientX / width) * 2 - 1;
-    targetMouseY = (e.clientY / height) * 2 - 1;
-});
-
-function project(x, y, z) {
-    const px = x - mouseX * z * 0.15;
-    const py = y - mouseY * z * 0.15;
-    const scale = z > 0 ? fov / z : 0;
-    return {
-        x: width / 2 + px * scale,
-        y: height / 2 + py * scale,
-        scale: scale
-    };
+// ── Start ──
+function startTimer() {
+    started = true;
+    secondsLeft = TOTAL_SECONDS;
+    isPaused = false;
+    showScreen('timerScreen');
+    renderTimer();
+    timerInterval = setInterval(tick, 1000);
 }
 
-// 3D Engine Parameters
-const depth = 4000;
-
-// Grid parameters
-let gridOffsetZ = 0;
-const gridSpeed = 2;
-const gridSpacing = 150;
-
-// Node parameters
-const nodes = [];
-const numNodes = 120;
-for(let i=0; i<numNodes; i++) {
-    nodes.push({
-        x: (Math.random() - 0.5) * 4000,
-        y: (Math.random() - 0.5) * 3000,
-        z: Math.random() * depth,
-        vx: (Math.random() - 0.5) * 1,
-        vy: (Math.random() - 0.5) * 1,
-        vz: - (Math.random() * 2 + 1), 
-        size: Math.random() * 2 + 1,
-        baseAlpha: Math.random() * 0.6 + 0.2
-    });
+// ── Tick ──
+function tick() {
+    if (isPaused) return;
+    if (secondsLeft <= 0) {
+        clearInterval(timerInterval);
+        showScreen('finishedScreen');
+        return;
+    }
+    secondsLeft--;
+    renderTimer();
 }
 
-// Frame parameters (recursive tunnel)
-const frames = [];
-const numFrames = 8;
-const frameSpeed = 3;
-for(let i=0; i<numFrames; i++) {
-    frames.push({
-        z: (i / numFrames) * depth
-    });
+// ── Render ──
+function renderTimer() {
+    const h = Math.floor(secondsLeft / 3600);
+    const m = Math.floor((secondsLeft % 3600) / 60);
+    const s = secondsLeft % 60;
+
+    const hStr = String(h).padStart(2, '0');
+    const mStr = String(m).padStart(2, '0');
+    const sStr = String(s).padStart(2, '0');
+
+    hoursDisplay.textContent   = hStr;
+    minutesDisplay.textContent = mStr;
+    secondsDisplay.textContent = sStr;
+    mainDisplay.textContent    = `${hStr}:${mStr}:${sStr}`;
+
+    // Progress bars
+    hoursBar.style.width   = `${(h / 8) * 100}%`;
+    minutesBar.style.width = `${(m / 59) * 100}%`;
+    secondsBar.style.width = `${(s / 59) * 100}%`;
+
+    // Ring progress
+    const fraction = secondsLeft / TOTAL_SECONDS;
+    ringProgress.style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - fraction);
+
+    // Elapsed
+    const elapsed = TOTAL_SECONDS - secondsLeft;
+    const eh = Math.floor(elapsed / 3600);
+    const em = Math.floor((elapsed % 3600) / 60);
+    const es = elapsed % 60;
+    elapsedDisplay.textContent =
+        `${String(eh).padStart(2,'0')}:${String(em).padStart(2,'0')}:${String(es).padStart(2,'0')}`;
+
+    // Danger mode (last 60 minutes = 3600s)
+    if (secondsLeft <= 3600) {
+        timerScreen.classList.add('danger');
+    } else {
+        timerScreen.classList.remove('danger');
+    }
 }
 
-function drawGrid() {
-    gridOffsetZ = (gridOffsetZ + gridSpeed) % gridSpacing;
-    
-    // Top and Bottom grid logic
-    const planes = [
-        { y: 400, colorTop: 'rgba(0, 150, 255, ', colorBot: 'rgba(0, 150, 255, ', alphaMult: 0.5, type: 'floor' },
-        { y: -400, colorTop: 'rgba(0, 100, 200, ', colorBot: 'rgba(0, 100, 200, ', alphaMult: 0.3, type: 'ceil' }
-    ];
+// ── Pause / Resume ──
+function togglePause() {
+    isPaused = !isPaused;
+    pauseBtn.textContent = isPaused ? '▶ RESUME' : '⏸ PAUSE';
+    if (isPaused) {
+        pauseBtn.style.background = 'rgba(56,189,248,0.25)';
+    } else {
+        pauseBtn.style.background = 'rgba(14,165,233,0.15)';
+    }
+}
 
-    ctx.lineWidth = 1;
+// ── Reset ──
+function resetTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    started = false;
+    isPaused = false;
+    secondsLeft = TOTAL_SECONDS;
+    timerScreen.classList.remove('danger');
+    pauseBtn.textContent = '⏸ PAUSE';
+    pauseBtn.style.background = '';
+    showScreen('startScreen');
+}
 
-    for (const plane of planes) {
-        // Horizontal lines (moving forward)
-        for(let z = gridOffsetZ; z < depth; z += gridSpacing) {
-            let p1 = project(-4000, plane.y, z);
-            let p2 = project(4000, plane.y, z);
-            if (p1.scale <= 0) continue;
-            
-            let alpha = Math.max(0, 1 - (z / depth)) * plane.alphaMult;
-            let pulse = Math.sin(Date.now() * 0.002 + z * 0.01) * 0.1; // Soft glowing pulse
-            
-            ctx.strokeStyle = `${plane.colorTop}${alpha + pulse})`;
+// ── Particle Canvas ──
+(function () {
+    const canvas = document.getElementById('particleCanvas');
+    const ctx    = canvas.getContext('2d');
+    const particles = [];
+    const COUNT = 55;
+
+    function resize() {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    for (let i = 0; i < COUNT; i++) {
+        particles.push({
+            x:    Math.random() * window.innerWidth,
+            y:    Math.random() * window.innerHeight,
+            r:    Math.random() * 1.5 + 0.3,
+            vx:   (Math.random() - 0.5) * 0.3,
+            vy:   (Math.random() - 0.5) * 0.3,
+            a:    Math.random(),
+        });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0) p.x = canvas.width;
+            if (p.x > canvas.width)  p.x = 0;
+            if (p.y < 0) p.y = canvas.height;
+            if (p.y > canvas.height) p.y = 0;
+
             ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.stroke();
-        }
-        
-        // Vertical lines (infinite perspective)
-        for(let x = -4000; x <= 4000; x += gridSpacing) {
-             let p1 = project(x, plane.y, 10);
-             let p2 = project(x, plane.y, depth);
-             if (p1.scale > 0 && p2.scale > 0) {
-                  const grad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
-                  let pulseY = (Math.sin(Date.now() * 0.001 + Math.abs(x) * 0.01) * 0.1 + 0.5) * plane.alphaMult * 2;
-                  grad.addColorStop(0, `${plane.colorTop}${pulseY})`);
-                  grad.addColorStop(1, `${plane.colorBot}0)`);
-                  ctx.strokeStyle = grad;
-                  ctx.beginPath();
-                  ctx.moveTo(p1.x, p1.y);
-                  ctx.lineTo(p2.x, p2.y);
-                  ctx.stroke();
-             }
-        }
-    }
-}
-
-function drawNodes() {
-    // 1. Update positions
-    for(let i=0; i<nodes.length; i++) {
-        let n = nodes[i];
-        n.x += n.vx;
-        n.y += n.vy;
-        n.z += n.vz;
-        
-        // Loop bounds
-        if (n.z < 10) n.z += depth;
-        if (n.x < -2000) n.x += 4000;
-        if (n.x > 2000) n.x -= 4000;
-        if (n.y < -1500) n.y += 3000;
-        if (n.y > 1500) n.y -= 3000;
-    }
-    
-    // 2. Draw connections first (behind nodes)
-    ctx.lineWidth = 0.5;
-    for(let i=0; i<nodes.length; i++) {
-        for(let j=i+1; j<nodes.length; j++) {
-            let ni = nodes[i];
-            let nj = nodes[j];
-            let dx = ni.x - nj.x;
-            let dy = ni.y - nj.y;
-            let dz = ni.z - nj.z;
-            let distSq = dx*dx + dy*dy + dz*dz;
-            
-            // Connect close nodes
-            if (distSq < 150000) { 
-                let pi = project(ni.x, ni.y, ni.z);
-                let pj = project(nj.x, nj.y, nj.z);
-                if (pi.scale > 0 && pj.scale > 0) {
-                    let alpha = 1 - Math.sqrt(distSq)/387.29; // ~sqrt(150000)
-                    let depthAlpha = Math.max(0, 1 - (ni.z / depth));
-                    ctx.strokeStyle = `rgba(0, 255, 255, ${alpha * depthAlpha * 0.4})`;
-                    ctx.beginPath();
-                    ctx.moveTo(pi.x, pi.y);
-                    ctx.lineTo(pj.x, pj.y);
-                    ctx.stroke();
-                }
-            }
-        }
-    }
-    
-    // 3. Draw nodes
-    for(let n of nodes) {
-        let p = project(n.x, n.y, n.z);
-        if (p.scale > 0) {
-            let depthAlpha = Math.max(0, 1 - (n.z / depth));
-            let r = n.size * p.scale;
-            
-            // Soft blink effect mapped to time and position
-            let blink = (Math.sin(Date.now() * 0.005 + n.x) + 1) * 0.5;
-            let a = n.baseAlpha * depthAlpha * (0.5 + blink * 0.5);
-            
-            ctx.fillStyle = `rgba(0, 255, 255, ${a})`;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, Math.max(0.1, r), 0, Math.PI*2);
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(56, 189, 248, ${p.a * 0.6})`;
+            ctx.shadowColor = 'rgba(56, 189, 248, 0.8)';
+            ctx.shadowBlur  = 6;
             ctx.fill();
-            
-            // Glow effect
-            if (p.scale > 0.5) {
-                ctx.shadowColor = '#00ffff';
-                ctx.shadowBlur = 10 * p.scale;
-                ctx.fill();
-                ctx.shadowBlur = 0; 
-            }
-        }
+        });
+        requestAnimationFrame(draw);
     }
-}
-
-function drawFrames() {
-    ctx.lineWidth = 1;
-    for(let f of frames) {
-        f.z -= frameSpeed;
-        if (f.z < 10) f.z += depth;
-        
-        let sWidth = 800;  // Base width of the frame
-        let sHeight = 500; // Base height of the frame
-        
-        // 4 corners of the square
-        let p1 = project(-sWidth, -sHeight, f.z);
-        let p2 = project(sWidth, -sHeight, f.z);
-        let p3 = project(sWidth, sHeight, f.z);
-        let p4 = project(-sWidth, sHeight, f.z);
-        
-        if (p1.scale > 0 && p2.scale > 0 && p3.scale > 0 && p4.scale > 0) {
-            let alpha = Math.max(0, 1 - (f.z / depth)) * 0.15; // Very dim, subtle framing
-            ctx.strokeStyle = `rgba(0, 255, 255, ${alpha})`;
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.lineTo(p3.x, p3.y);
-            ctx.lineTo(p4.x, p4.y);
-            ctx.closePath();
-            ctx.stroke();
-        }
-    }
-}
-
-function animate() {
-    // Clear canvas with base background to prevent trails
-    ctx.clearRect(0, 0, width, height);
-    
-    // Smooth mouse follow (easing)
-    mouseX += (targetMouseX - mouseX) * 0.05;
-    mouseY += (targetMouseY - mouseY) * 0.05;
-    
-    // Draw elements
-    drawGrid();     // Floor and ceiling
-    drawFrames();   // Inward tunnel frames
-    drawNodes();    // Neural network
-    
-    requestAnimationFrame(animate);
-}
-
-// Start animation loop
-animate();
+    draw();
+})();
