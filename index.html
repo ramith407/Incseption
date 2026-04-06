@@ -30,30 +30,9 @@
             &lt;In<span class="cyan">CSE</span>ption 2.0&gt;
         </div>
 
-        <!-- START SCREEN -->
-        <div id="startScreen" class="screen active">
-            <div class="start-card glass-card">
-                <div class="hackathon-badge">8-HOUR HACKATHON</div>
-                <h1 class="start-title">
-                    Ready to<br/>
-                    <span class="cyan glow-text">Dive In?</span>
-                </h1>
-                <p class="start-subtitle">Dive into Layers of Innovation</p>
-                <div class="timer-preview">
-                    <span>08</span><span class="colon">:</span><span>00</span><span class="colon">:</span><span>00</span>
-                </div>
-                <button id="startBtn" class="start-btn" onclick="startTimer()">
-                    <span class="btn-icon">▶</span>
-                    START HACKATHON
-                </button>
-                <p class="start-note">Timer will begin counting down from 8:00:00</p>
-            </div>
-        </div>
 
         <!-- TIMER SCREEN -->
-        <div id="timerScreen" class="screen">
-            <div class="timer-label cyan glow-text">HACKATHON IN PROGRESS</div>
-
+        <div id="timerScreen" class="screen active">
             <div class="timer-card glass-card">
                 <div class="progress-ring-wrapper">
                     <svg class="progress-ring" viewBox="0 0 340 340">
@@ -87,15 +66,11 @@
                     </div>
                 </div>
 
-                <div class="control-row">
-                    <button id="pauseBtn" class="ctrl-btn" onclick="togglePause()">⏸ PAUSE</button>
-                    <button class="ctrl-btn ctrl-btn-ghost" onclick="resetTimer()">↺ RESET</button>
-                </div>
+
             </div>
 
-            <div id="elapsed-row" class="elapsed-row">
-                <span class="elapsed-label">Elapsed:</span>
-                <span id="elapsedDisplay" class="elapsed-val">00:00:00</span>
+            <div class="end-time-label">
+                🏁 Hackathon ends at <span class="cyan">3:30 PM</span>
             </div>
         </div>
 

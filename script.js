@@ -1,17 +1,24 @@
 /* ============================================================
-   InCSEption 2.0 — Hackathon Timer Logic
+   InCSEption 2.0 — Hackathon Timer
+   Counts down to 3:30 PM (15:30:00) today, auto-starts on load
    ============================================================ */
 
-const TOTAL_SECONDS = 8 * 60 * 60; // 8 hours in seconds
 const RING_CIRCUMFERENCE = 2 * Math.PI * 155; // matches r="155" in SVG
 
-let secondsLeft = TOTAL_SECONDS;
-let timerInterval = null;
-let isPaused = false;
-let started = false;
+// ── Target: 3:30 PM today ──
+function getTarget() {
+    const t = new Date();
+    t.setHours(15, 30, 0, 0);
+    return t;
+}
+
+// Total duration from midnight to 3:30 PM = used for ring progress baseline
+const TARGET_TIME = getTarget();
+
+// Compute total seconds from page-load until target (for the ring's 100% baseline)
+const LOAD_SECONDS_LEFT = Math.max(0, Math.floor((TARGET_TIME - Date.now()) / 1000));
 
 // ── DOM refs ──
-const startScreen    = document.getElementById('startScreen');
 const timerScreen    = document.getElementById('timerScreen');
 const finishedScreen = document.getElementById('finishedScreen');
 
@@ -19,49 +26,28 @@ const hoursDisplay   = document.getElementById('hoursDisplay');
 const minutesDisplay = document.getElementById('minutesDisplay');
 const secondsDisplay = document.getElementById('secondsDisplay');
 const mainDisplay    = document.getElementById('mainDisplay');
-const elapsedDisplay = document.getElementById('elapsedDisplay');
 
 const hoursBar   = document.getElementById('hoursBar');
 const minutesBar = document.getElementById('minutesBar');
 const secondsBar = document.getElementById('secondsBar');
 
 const ringProgress = document.getElementById('ringProgress');
-const pauseBtn     = document.getElementById('pauseBtn');
 
-// Set ring total circumference
+// Set ring circumference
 ringProgress.style.strokeDasharray  = RING_CIRCUMFERENCE;
 ringProgress.style.strokeDashoffset = 0;
 
-// ── screens helper ──
+// ── Screens helper ──
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 }
 
-// ── Start ──
-function startTimer() {
-    started = true;
-    secondsLeft = TOTAL_SECONDS;
-    isPaused = false;
-    showScreen('timerScreen');
-    renderTimer();
-    timerInterval = setInterval(tick, 1000);
-}
-
-// ── Tick ──
-function tick() {
-    if (isPaused) return;
-    if (secondsLeft <= 0) {
-        clearInterval(timerInterval);
-        showScreen('finishedScreen');
-        return;
-    }
-    secondsLeft--;
-    renderTimer();
-}
-
 // ── Render ──
 function renderTimer() {
+    const now = Date.now();
+    const secondsLeft = Math.max(0, Math.floor((TARGET_TIME - now) / 1000));
+
     const h = Math.floor(secondsLeft / 3600);
     const m = Math.floor((secondsLeft % 3600) / 60);
     const s = secondsLeft % 60;
@@ -76,53 +62,36 @@ function renderTimer() {
     mainDisplay.textContent    = `${hStr}:${mStr}:${sStr}`;
 
     // Progress bars
-    hoursBar.style.width   = `${(h / 8) * 100}%`;
+    hoursBar.style.width   = LOAD_SECONDS_LEFT > 0 ? `${(secondsLeft / LOAD_SECONDS_LEFT) * 100}%` : '0%';
     minutesBar.style.width = `${(m / 59) * 100}%`;
     secondsBar.style.width = `${(s / 59) * 100}%`;
 
-    // Ring progress
-    const fraction = secondsLeft / TOTAL_SECONDS;
+    // Ring — shrinks from full to 0 as time elapses
+    const fraction = LOAD_SECONDS_LEFT > 0 ? secondsLeft / LOAD_SECONDS_LEFT : 0;
     ringProgress.style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - fraction);
 
-    // Elapsed
-    const elapsed = TOTAL_SECONDS - secondsLeft;
-    const eh = Math.floor(elapsed / 3600);
-    const em = Math.floor((elapsed % 3600) / 60);
-    const es = elapsed % 60;
-    elapsedDisplay.textContent =
-        `${String(eh).padStart(2,'0')}:${String(em).padStart(2,'0')}:${String(es).padStart(2,'0')}`;
 
-    // Danger mode (last 60 minutes = 3600s)
-    if (secondsLeft <= 3600) {
+    // Danger mode (last 30 minutes)
+    if (secondsLeft <= 1800 && secondsLeft > 0) {
         timerScreen.classList.add('danger');
     } else {
         timerScreen.classList.remove('danger');
     }
-}
 
-// ── Pause / Resume ──
-function togglePause() {
-    isPaused = !isPaused;
-    pauseBtn.textContent = isPaused ? '▶ RESUME' : '⏸ PAUSE';
-    if (isPaused) {
-        pauseBtn.style.background = 'rgba(56,189,248,0.25)';
-    } else {
-        pauseBtn.style.background = 'rgba(14,165,233,0.15)';
+    // Done?
+    if (secondsLeft <= 0) {
+        clearInterval(timerInterval);
+        mainDisplay.textContent = '00:00:00';
+        hoursDisplay.textContent = minutesDisplay.textContent = secondsDisplay.textContent = '00';
+        hoursBar.style.width = minutesBar.style.width = secondsBar.style.width = '0%';
+        ringProgress.style.strokeDashoffset = RING_CIRCUMFERENCE;
+        showScreen('finishedScreen');
     }
 }
 
-// ── Reset ──
-function resetTimer() {
-    clearInterval(timerInterval);
-    timerInterval = null;
-    started = false;
-    isPaused = false;
-    secondsLeft = TOTAL_SECONDS;
-    timerScreen.classList.remove('danger');
-    pauseBtn.textContent = '⏸ PAUSE';
-    pauseBtn.style.background = '';
-    showScreen('startScreen');
-}
+// ── Auto-start on load ──
+renderTimer(); // render immediately so there's no flicker
+const timerInterval = setInterval(renderTimer, 1000);
 
 // ── Particle Canvas ──
 (function () {
@@ -140,12 +109,12 @@ function resetTimer() {
 
     for (let i = 0; i < COUNT; i++) {
         particles.push({
-            x:    Math.random() * window.innerWidth,
-            y:    Math.random() * window.innerHeight,
-            r:    Math.random() * 1.5 + 0.3,
-            vx:   (Math.random() - 0.5) * 0.3,
-            vy:   (Math.random() - 0.5) * 0.3,
-            a:    Math.random(),
+            x:  Math.random() * window.innerWidth,
+            y:  Math.random() * window.innerHeight,
+            r:  Math.random() * 1.5 + 0.3,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: (Math.random() - 0.5) * 0.3,
+            a:  Math.random(),
         });
     }
 
